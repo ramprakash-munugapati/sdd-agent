@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SDD Dashboard</title>
+<style>
+  body {font-family: system-ui, sans-serif; margin: 2rem; line-height: 1.5;}
+  .status {padding: 0.2rem 0.5rem; border-radius: 4px; color: white; margin-right: 0.5rem;}
+  .notrun {background: #aaa;}
+  {blocked {background: #f88;}}
+  .running {background: #ffd300; color: #000;}
+  .passed {background: #4c1;}
+  .failed {background: #c33;}
+  pre {background: #f0f0f0; padding: 1rem; overflow-x: auto; font-size: 0.85rem; white-space: pre-wrap;}
+  .error {color: #c33;}
+</style>
+</head>
+<body>
+<h1>SDD Dashboard</h1>
+
+<p>Trusted target: <span id="project">loading…</span></p>
+
+<div id="status" class="status notrun">NOT_RUN</div>
+
+<div>
+  <h2>Artifact gates</h2>
+  <pre id="logs">No verification run yet.</pre>
+</div>
+
+<div>
+  <h2>Coverage</h2>
+  <p id="coverage">—</p>
+</div>
+
+<hr>
+<h2>Approval state</h2>
+<ul id="approvals"></ul>
+
+<h2>Historical evidence</h2>
+<div id="history"></div>
+
+<script>
+const projectEl = document.getElementById('project');
+const statusEl = document.getElementById('status');
+const logsEl = document.getElementById('logs');
+const coverageEl = document.getElementById('coverage');
+const approvalsEl = document.getElementById('approvals');
+const historyEl = document.getElementById('history');
+
+let currentProject = '';
+
+async function loadProject() {
+  try {
+    const resp = await fetch('/api/sdd/status');
+    const data = await resp.json();
+    currentProject = data.project || currentProject;
+    projectEl.textContent = currentProject;
+    updateStatus(data);
+    renderApprovals(data.approvals);
+    renderHistory(data);
+  } catch (e) {
+    projectEl.textContent = 'error loading status';
+    console.error(e);
+  }
+}
+
+function setStatus(cls, text) {
+  statusEl.className = cls;
+  statusEl.textContent = text;
+}
+
+function updateStatus(data) {
+  // Determine state from gates; simplified mapping
+  if (data.verified === false || data.gatesFailed) {
+    setStatus('failed', 'FAILED');
+  } else if (data.running) {
+    setStatus('running', 'RUNNING');
+  } else if (data.passed) {
+    setStatus('passed', 'PASSED');
+  } else {
+    setStatus('notrun', 'NOT_RUN');
+  }
+}
+
+function renderApprovals(apps) {
+  approvalsEl.innerHTML = '';
+  if (!apps) return;
+  Object.keys(apps).forEach(k => {
+    const li = document.createElement('li');
+    li.textContent = `${k}: reviewer=${apps[k].reviewer} fingerprint=${apps[k].fingerprint?.slice(0,8)}…`;
+    approvalsEl.appendChild(li);
+  });
+}
+
+function renderHistory(data) {
+  historyEl.innerHTML = '';
+  // data.evidence could be an array of previous run records
+  const runs = data.evidence || [];
+  if (!runs.length) {
+    historyEl.textContent = 'No historical evidence yet.';
+    return;
+  }
+  const list = document.createElement('ul');
+  runs.slice(-10).forEach(run => {
+    const li = document.createElement('li');
+    const cls = run.failed ? 'failed' : 'passed';
+    li.className = cls;
+    li.textContent = `${run.kind} at ${new Date(run.timestamp).toLocaleString()} – ${run.failed ? 'FAILED' : 'PASSED'} (coverage ${run.coverage||'—'}%)`;
+    list.appendChild(li);
+  });
+  historyEl.appendChild(list);
+}
+
+async function triggerVerify() {
+  const resp = await fetch('/api/sdd/verify', {method: 'POST', headers: {'Content-Type': 'application/json'}});
+  const result = await resp.json();
+  // Show result
+  if (result.valid !== undefined) {
+    setStatus(result.valid ? 'passed' : 'failed', result.valid ? 'PASSED' : 'FAILED');
+    logsEl.textContent = result.message || '';
+    coverageEl.textContent = result.coverage || '—';
+  } else {
+    logsEl.textContent = 'Unexpected response';
+  }
+}
+
+// Initialise
+loadProject();
+</script>
+</body>
+</html>

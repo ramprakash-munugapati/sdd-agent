@@ -1,0 +1,36 @@
+name: SDD Agent CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest jsonschema
+
+      - name: Run deterministic tests
+        run: python -m pytest tests/ -v
+
+      - name: Validate artifact files exist
+        run: |
+          test -f SPEC.md || (echo "SPEC.md missing" && exit 1)
+          test -f PLAN.md || (echo "PLAN.md missing" && exit 1)
+          test -f TASKS.json || (echo "TASKS.json missing" && exit 1)
+
+      - name: Lint sdd_agent.py (basic)
+        run: python -m py_compile sdd_agent.py || true
