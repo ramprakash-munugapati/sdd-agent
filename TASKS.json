@@ -1,0 +1,172 @@
+{
+  "tasks": [
+    {
+      "id": "TASK-001",
+      "title": "Repository discovery and baseline review",
+      "requirements": ["REQ-001"],
+      "dependencies": [],
+      "status": "planned",
+      "validation": [
+        "Inspect existing instructions, manifests, source, tests, and documentation.",
+        "Confirm unrelated worktree changes are preserved.",
+        "Capture scope, constraints, and failure cases before drafting artifacts."
+      ]
+    },
+    {
+      "id": "TASK-002",
+      "title": "Draft reviewable specification",
+      "requirements": ["REQ-001", "REQ-002", "REQ-005", "REQ-006"],
+      "dependencies": ["TASK-001"],
+      "status": "planned",
+      "validation": [
+        "Ensure SPEC.md contains unique REQ-XXX entries.",
+        "Each requirement includes acceptance scenarios.",
+        "Approval semantics and fingerprint requirements are explicit."
+      ]
+    },
+    {
+      "id": "TASK-003",
+      "title": "Draft implementation plan",
+      "requirements": ["REQ-003", "REQ-010", "REQ-011", "REQ-017"],
+      "dependencies": ["TASK-001", "TASK-002"],
+      "status": "planned",
+      "validation": [
+        "Verify PLAN.md contains architecture, execution steps, requirement mapping, and validation strategy.",
+        "Confirm the plan is consistent with the trusted-target and verification model."
+      ]
+    },
+    {
+      "id": "TASK-004",
+      "title": "Draft task inventory and dependency graph",
+      "requirements": ["REQ-004", "REQ-009", "REQ-016"],
+      "dependencies": ["TASK-002", "TASK-003"],
+      "status": "planned",
+      "validation": [
+        "Ensure TASKS.json includes unique IDs, dependency references, statuses, and validation instructions.",
+        "Detect duplicate task IDs, invalid fields, and missing requirement references."
+      ]
+    },
+    {
+      "id": "TASK-005",
+      "title": "Human review and approval gate",
+      "requirements": ["REQ-001", "REQ-005", "REQ-006", "REQ-017"],
+      "dependencies": ["TASK-002", "TASK-003", "TASK-004"],
+      "status": "planned",
+      "validation": [
+        "A human must explicitly review SPEC.md, PLAN.md, and TASKS.json.",
+        "Approval must be recorded via the CLI approval workflow, not by informal acceptance."
+      ]
+    },
+    {
+      "id": "TASK-006",
+      "title": "Create canonical SDD workflow documentation",
+      "requirements": ["REQ-007"],
+      "dependencies": ["TASK-005"],
+      "status": "planned",
+      "validation": [
+        "Ensure SDD-WORKFLOW.md describes Specify → Clarify → Plan → Tasks → Implement → Verify.",
+        "Classify claims as Observed, Inferred, Proposed, or Unverified."
+      ]
+    },
+    {
+      "id": "TASK-007",
+      "title": "Create Copilot customization assets and IDE guidance",
+      "requirements": ["REQ-008"],
+      "dependencies": ["TASK-006"],
+      "status": "planned",
+      "validation": [
+        "Check `.github/` files exist with expected names and shared instructions.",
+        "Verify local plain-language fallback behavior is documented for IDEs without slash prompts."
+      ]
+    },
+    {
+      "id": "TASK-008",
+      "title": "Implement artifact validation rules and approval fingerprint checks",
+      "requirements": ["REQ-005", "REQ-006", "REQ-009"],
+      "dependencies": ["TASK-007"],
+      "status": "planned",
+      "validation": [
+        "Reject missing or malformed artifacts.",
+        "Reject unresolved clarification markers, missing sections, duplicate requirement IDs, and empty requirements.",
+        "Invalidate approvals when relevant content changes."
+      ]
+    },
+    {
+      "id": "TASK-009",
+      "title": "Implement CLI and local API",
+      "requirements": ["REQ-013"],
+      "dependencies": ["TASK-008"],
+      "status": "planned",
+      "validation": [
+        "Verify `check`, `approve`, `verify`, and `serve` commands exist and return expected exit codes.",
+        "Confirm `/`, `/api/sdd/status`, and `/api/sdd/verify` are served on loopback."
+      ]
+    },
+    {
+      "id": "TASK-010",
+      "title": "Implement trusted-target verification engine",
+      "requirements": ["REQ-010", "REQ-011", "REQ-012"],
+      "dependencies": ["TASK-009"],
+      "status": "planned",
+      "validation": [
+        "Check preflight validation for artifacts, approvals, wrapper files, source/tests, and Gradle tasks.",
+        "Confirm execution order is Checkstyle → tests → JaCoCo.",
+        "Reject missing, skipped, malformed, or insufficient evidence."
+      ]
+    },
+    {
+      "id": "TASK-011",
+      "title": "Implement local dashboard and historical evidence display",
+      "requirements": ["REQ-014"],
+      "dependencies": ["TASK-010"],
+      "status": "planned",
+      "validation": [
+        "Render truthful states for NOT_RUN, BLOCKED, RUNNING, PASSED, and FAILED.",
+        "Display logs as plain text and clearly mark historical results as non-live evidence."
+      ]
+    },
+    {
+      "id": "TASK-012",
+      "title": "Add bootstrap, templates, and Java example fixture",
+      "requirements": ["REQ-015"],
+      "dependencies": ["TASK-011"],
+      "status": "planned",
+      "validation": [
+        "Confirm bootstrap is idempotent and does not overwrite instructions or duplicate a server.",
+        "Verify Java 21 example is isolated, realistic, and separate from Python tooling."
+      ]
+    },
+    {
+      "id": "TASK-013",
+      "title": "Add deterministic tests and CI",
+      "requirements": ["REQ-016"],
+      "dependencies": ["TASK-010", "TASK-011"],
+      "status": "planned",
+      "validation": [
+        "Run targeted tests for invalidation, traceability, dependency cycles, subprocess failures, concurrency, and dashboard behavior.",
+        "Verify CI uses public tooling without private infrastructure."
+      ]
+    },
+    {
+      "id": "TASK-014",
+      "title": "Write user-facing guides and troubleshooting docs",
+      "requirements": ["REQ-015", "REQ-017"],
+      "dependencies": ["TASK-012", "TASK-013"],
+      "status": "planned",
+      "validation": [
+        "Ensure README.md and USER-GUIDE.md cover installation, setup, safe adoption, workflow, console, dashboard, Java example, failing tests, troubleshooting, and trust limitations."
+      ]
+    },
+    {
+      "id": "TASK-015",
+      "title": "Phase 3 verification and evidence reporting",
+      "requirements": ["REQ-017"],
+      "dependencies": ["TASK-013", "TASK-014"],
+      "status": "planned",
+      "validation": [
+        "Run the smallest relevant tests first, then broader checks if necessary.",
+        "Summarize commands, outcomes, coverage, blocked checks, and any unverified IDE behavior honestly."
+      ]
+    }
+  ]
+}
